@@ -1,0 +1,11 @@
+{% extends 'reportingTool/index.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Login</h1>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button>Connectez-vous</button>
+</form>
+{% endblock content %}

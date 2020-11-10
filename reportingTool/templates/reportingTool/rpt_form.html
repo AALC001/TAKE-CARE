@@ -1,0 +1,52 @@
+{% extends 'reportingTool/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid bg-light mt-0 pt-0">
+        <div class="col-md-10 col-sm-10 offset-md-1 mt-5">
+            <!--div class="jumbotron"-->
+                <h1 class="display-4"><span style="font-family: Arial, Helvetica, sans-serif; font-style: italic; color:orange;">R</span>eporting<span style="font-family: Arial, Helvetica, sans-serif; font-style: italic; color: lawngreen;">T</span>ool</h1>
+                <p class="lead font-italic">Enregistrement d'un patient</p>
+                <hr class="my-0">
+
+                <!--Formulaire-->
+                <form action="" method="POST" autocomplete="off" class="col-sm-8 col-md-10 mb-5">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6"> {{form.post_de_depistage|as_crispy_field}} </div>
+                        <div class="col-md-6"> {{form.date_de_depistage|as_crispy_field}} </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4"> {{form.code_patient|as_crispy_field}} </div>
+                        <div class="col-md-3"> {{form.genre|as_crispy_field}} </div>
+                        <div class="col-md-2"> {{form.age|as_crispy_field}} </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-md-4"> {{form.conseiller|as_crispy_field}} </div>
+                        <div class="col-md-4"> {{form.depister|as_crispy_field}} </div>
+                        <div class="col-md-4"> {{form.resultat|as_crispy_field}} </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-md-4"> {{form.resultat_recu|as_crispy_field}} </div>
+                        <div class="col-md-4"> {{form.beneficiant_CD4|as_crispy_field}} </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <button type="submit" class="btn btn-success btn-block btn-lg"><i class="fas fa-database mr-2"></i>Soumettre</button>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'patient_list' %}" class="btn btn-secondary btn-block btn-lg">
+                                <i class="fas fa-stream mr-2"></i>Retour à la liste
+                            </a>
+                        </div>
+                    </div>
+                </form>
+
+
+            <!--/div-->
+        </div>
+</div>
+
+{% endblock content %}

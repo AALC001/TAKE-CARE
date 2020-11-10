@@ -1,0 +1,77 @@
+{% extends 'reportingTool/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="container-fluid bg-light">
+    <div class="col-md-10 col-sm-10 offset-md-1 mt-5">
+        <!--div class="jumbotron"-->
+            <h1 class="display-4"><span style="font-family: Arial, Helvetica, sans-serif; font-style: italic; color:orange;">R</span>eporting<span style="font-family: Arial, Helvetica, sans-serif; font-style: italic; color: lawngreen;">T</span>ool</h1>
+            <p class="lead font-italic">Listes des engeristrements</p>
+            <br>
+            <form action="" method="POST" autocomplete="off" class="col-sm-8 col-md-10 mb-5">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-3 ml-2">{{form.date_enregistrement|as_crispy_field}}</div>
+                    <div class="col-md-3 mr-2">{{form.post_de_depistage|as_crispy_field}}</div>
+                    <div class="col-md-4 mr-2">{{form.code_patient|as_crispy_field}}</div>
+                </div>
+                <button type="submit" class="btn btn-success btn-block btn-lg"><i class="fas fa-sort mr-3"></i>Trier</button>
+            </form>
+            <hr class="my-0">
+
+            <!--Liste des enregistrements-->
+            <table class="table table-hover table-responsive-sm table-striped col-sm-6">
+                <thead class="border-bottom font-weight-bold">
+                    <tr>
+                        <td>Post de dépistage</td>
+                        <td>Date de dépistage</td>
+                        <td>Code du Patient</td>
+                        <td>Sexe</td>
+                        <td>Âge</td>
+                        <td>Conseiller pour le test</td>
+                        <td>Éffectivement dépisté</td>
+                        <td>Résultat du test de dépistage</td>
+                        <td>Positif ayant reçu son résultat</td>
+                        <td>Positif bénéficiant d'un CD4</td>
+                        <td>
+                            <a href="{% url 'patient_insert' %}" class="btn btn-outline-success">
+                                <i class="fas fa-plus"></i>Ajouter
+                            </a>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patient_list reversed%}
+                        <tr>
+                            <td>{{patient.post_de_depistage}}</td>
+                            <td>{{patient.date_de_depistage}}</td>
+                            <td> {{patient.code_patient}} </td>
+                            <td>{{patient.genre}}</td>
+                            <td>{{patient.age}}</td>
+                            <td>{{patient.conseiller}}</td>
+                            <td>{{patient.depister}}</td>
+                            <td>{{patient.resultat}}</td>
+                            <td>{{patient.resultat_recu}}</td>
+                            <td>{{patient.beneficiant_CD4}}</td>
+                            <td>
+                                <a href="{% url 'patient_update' patient.id %}" class="btn text-secondary px-0">
+                                    <i class="far fa-edit fa-lg"></i>
+                                </a>
+                                <form action="{% url 'patient_delete' patient.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn">
+                                        <i class="far fa-trash-alt fa-lg text-danger float-right"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        <!--/div-->
+    </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,41 @@
+{% extends 'reportingTool/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+ <!-- StyleSheet CSS -->
+ <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+{% block content %}
+
+<div class="container-fluid bg-light">
+    <div class="col-md-10 col-sm-10 offset-md-1 mt-3">
+        <!--div class="jumbotron"-->
+            <h1 class="display-4 text-center"><span style="font-family: Arial, Helvetica, sans-serif; font-style: italic; color:orange;">R</span>eporting<span style="font-family: Arial, Helvetica, sans-serif; font-style: italic; color: lawngreen;">T</span>ool</h1>
+            <p class="lead font-italic text-center">Génération de rapport</p>
+            <hr class="my-0">
+
+            <!--Liste des enregistrements-->
+            <form action="{% url 'report' %}" method="POST" class="mx-auto">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-3 ml-2">{{form.date_de_debut|as_crispy_field}}</div>
+                    <div class="col-md-3 mr-2">{{form.date_de_fin|as_crispy_field}}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">{{form.region|as_crispy_field}}</div>
+                    <div class="col-md-3">{{form.district_sanitaire|as_crispy_field}}</div>
+                    <div class="col-md-3">{{form.etablissement_sanitaire|as_crispy_field}}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">{{form.code_etablissement_anitaire|as_crispy_field}}</div>
+                    <div class="col-md-3">{{form.code|as_crispy_field}}</div>
+                    <div class="col-md-3">{{form.renseigne_par|as_crispy_field}}</div>
+                </div>
+                <div class="row"></div><input type="submit" value="Générer rapport" class="btn btn-outline-success mx-auto"></div>
+                 
+            </form>            
+
+        <!--/div-->
+    </div>
+</div>
+{% endblock content %}

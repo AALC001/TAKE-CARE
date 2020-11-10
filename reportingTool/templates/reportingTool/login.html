@@ -1,0 +1,16 @@
+{% extends 'reportingTool/index.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+
+<div class="container-fluid my-auto">
+    <form action="" method="POST">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button class="btn btn-success">Connectez-vous</button>
+    </form>
+</div>
+
+{% endblock content %}

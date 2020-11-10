@@ -1,0 +1,11 @@
+{% extends 'reportingTool/index.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Créer un nouveau compte</h1>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button>S'enregistrer</button>
+</form>
+{% endblock content %}
