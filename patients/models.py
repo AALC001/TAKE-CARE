@@ -15,15 +15,8 @@ class Patient(TimedModel):
 	sexe = models.CharField(max_length=5, blank=True, null=True)
 	date_naissance = models.DateField("Date de Naissance", blank=True, null=True)
 	statut_ARV = models.CharField("Statut ARV",max_length=5, blank=True, null=True)
-	date_dernier_RDV_CV = models.DateField('Date dernier RDV CV', blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	nb_jour_CV = models.PositiveIntegerField("Nombre de Jours CV", default = 0, blank=True, null=True)
-	resultat_derniere_CV= models.CharField("resultat derniere CV",max_length=50, blank=True, null=True)
-	date_dernier_RDV_ARV = models.DateField("Date de dernier RDV ARV", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	nb_jour_ARV = models.PositiveIntegerField("Nombre de Jours ARV", default = 0, blank=True, null=True)
-	date_dernier_RDV_ETP = models.DateField('date de dernier RDV ETP', blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	nb_jour_ETP = models.PositiveIntegerField("Nombre de Jours ETP1", default = 0, blank=True, null=True)
 	nom_conseiller = models.CharField("Nom et Prénoms du conseiller",max_length=50, blank=True, null=True)
-
+	
 	def __str__(self):
 		return self.code_patient
 
