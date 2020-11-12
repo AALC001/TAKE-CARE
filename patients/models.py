@@ -14,9 +14,9 @@ class Patient(TimedModel):
 	nom_prenoms = models.CharField("Nom & Prénom",max_length=50, blank=True, null=True)
 	sexe = models.CharField(max_length=5, blank=True, null=True)
 	date_naissance = models.DateField("Date de Naissance", blank=True, null=True)
-	statut_ARV = models.CharField("Statut ARV",max_length=5, blank=True, null=True)
+	date_fin_traitement = models.DateField("Date de Fin de Traitement", blank=True, null=True)
 	nom_conseiller = models.CharField("Nom et Prénoms du conseiller",max_length=50, blank=True, null=True)
-	
+
 	def __str__(self):
 		return self.code_patient
 
@@ -27,6 +27,17 @@ class Patient(TimedModel):
 		else:
 			return int(datetime.datetime.now().year) - int(self.date_naissance.year)
 
+	@property
+	def statut_ARV(self):
+		if str(datetime.datetime.now() - datetime.timedelta(days=14))< str(self.date_fin_traitement) < str(datetime.datetime.now()):
+			return "Pctif avec rupture"
+		elif str(datetime.datetime.now() - datetime.timedelta(days=27)) < str(self.date_fin_traitement) < str(datetime.datetime.now() - datetime.timedelta(days=14)):
+			return "Perdu de vu"
+		elif str(self.date_fin_traitement) < str(datetime.datetime.now() - datetime.timedelta(days=27)):
+			return "Perdu de vu (à remettre à la communauté)"
+		else:
+			return "Actif sans rupture"
+		
 	#@property
 	#def cohorte_actuelle(self):
 	#	if self.Date_de_mise_sous_ARV is None:
