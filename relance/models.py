@@ -16,20 +16,15 @@ class TimedModel(models.Model):
 	class Meta:
 		abstract = True
 
-class RendezVous(TimedModel):
-	code_patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, blank=True, null=True, related_name="rendez_vous")
-	date_dernier_RDV_CV = models.DateField('Date dernier RDV CV', blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	resultat_derniere_CV= models.CharField("resultat derniere CV", max_length=50, blank=True, null=True)
-	nb_jour_CV = models.PositiveIntegerField("Nombre de Jours avant la prochaine CV", default = 0, blank=True, null=True)
-	date_dernier_RDV_ARV = models.DateField("Date de dernier RDV ARV", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	nb_jour_ARV = models.PositiveIntegerField("Nombre de Jours ARV", default = 0, blank=True, null=True)
-	date_dernier_RDV_ETP = models.DateField('date de dernier RDV ETP', blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	nb_jour_ETP = models.PositiveIntegerField("Nombre de Jours ETP1", default = 0, blank=True, null=True)
+class ChargeVirale(TimedModel):
+	code_patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, blank=True, null=True, related_name="charge_virale")
+	date_prelevement = models.DateField("Date de prélèvement", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
+	resultat_CV = models.CharField("Résultat Charge Virale",max_length=20, blank=True, null=True)
 
 	class Meta:
-		verbose_name = "Gestion des Rendez-Vous"
-		verbose_name_plural = "Gestion des Rendez-Vous"
-	
+		verbose_name = "Charge Virale"
+		verbose_name_plural = "Charges Virales"
+
 	@property
 	def presence_en_soins(self):
 		return self.code_patient.presence_soins
@@ -46,62 +41,28 @@ class RendezVous(TimedModel):
 	def nom_conseiller(self):
 		return self.code_patient.nom_conseiller
 
-
-class ProchainRendezVous(TimedModel):
-	code_patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, blank=True, null=True, related_name="prochains_rdv")
-	rdv = models.ForeignKey("RendezVous", on_delete=models.CASCADE, blank=True, null=True, related_name="prochains_rdv" , editable=False)
-
+class Ordonnance(TimedModel):
+	code_patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, blank=True, null=True, related_name="ordonnance")
+	date_derniere_dispensation = models.DateField("Date de dernière dispensation", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
+	nb_jour_traitement = models.PositiveIntegerField("Nombre de jour de traitement", blank=True, null=True)
+	dernier_regime_dispense = models.CharField("Dernier redime dispensé",max_length=20, blank=True, null=True)
+	date_fin_traitement = models.DateField("Date de fin de Traitement", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
+	
 	class Meta:
-		verbose_name = "Date Prévu Prochains Rendez-Vous"
-		verbose_name_plural = "Dates Prévus Prochains Rendez-Vous"
+		verbose_name = "Ordonnance"
+		verbose_name_plural = "Ordonnances"
 
 	@property
-	def date_prochain_rdv_CV(self):
-		date1 = self.rdv.date_dernier_RDV_CV
-		if self.rdv.nb_jour_CV is None:
-			return date1
+	def statut_ARV(self):
+		if str(datetime.datetime.now() - datetime.timedelta(days=14))< str(self.date_fin_traitement) < str(datetime.datetime.now()):
+			return "Pctif avec rupture"
+		elif str(datetime.datetime.now() - datetime.timedelta(days=27)) < str(self.date_fin_traitement) < str(datetime.datetime.now() - datetime.timedelta(days=14)):
+			return "Perdu de vu"
+		elif str(self.date_fin_traitement) < str(datetime.datetime.now() - datetime.timedelta(days=27)):
+			return "Perdu de vu (à remettre à la communauté)"
 		else:
-			date2 = datetime.timedelta(days=self.rdv.nb_jour_CV - 5)
-			return date1 + date2
-	
-	@property
-	def rdv_CV_manque(self):
-		if str(self.date_prochain_rdv_CV) < str(datetime.datetime.now()):
-			return self.date_prochain_rdv_CV
-		else:
-			return "----"
+			return "Actif sans rupture"
 
-	@property
-	def date_prochain_rdv_ETP(self):
-		date1 = self.rdv.date_dernier_RDV_ETP
-		if self.rdv.nb_jour_ETP is None:
-			return date1
-		else:
-			date2 = datetime.timedelta(days=self.rdv.nb_jour_ETP - 5)
-			return date1 + date2
-	
-	@property
-	def rdv_ETP_manque(self):
-		if str(self.date_prochain_rdv_ETP) < str(datetime.datetime.now()):
-			return self.date_prochain_rdv_ETP
-		else:
-			return "----"
-
-	@property
-	def date_prochain_rdv_ARV(self):
-		date1 = self.rdv.date_dernier_RDV_ARV
-		if self.rdv.nb_jour_ARV is None:
-			return date1
-		else:
-			date2 = datetime.timedelta(days=self.rdv.nb_jour_ARV - 5)
-			return date1 + date2
-
-	@property
-	def rdv_ARV_manque(self):
-		if str(self.date_prochain_rdv_ARV) < str(datetime.datetime.now()):
-			return self.date_prochain_rdv_ARV
-		else:
-			return "----"
 
 	@property
 	def presence_en_soins(self):
@@ -136,102 +97,50 @@ class ProchainRendezVous(TimedModel):
 	#	else:
 	#		return "En vigueur"
 
-class SuiviRdvARV(TimedModel):
-	code_patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, blank=True, null=True, related_name="suivi_rdv_arv")
-	#date_rdv = models.DateField("Date de RDV", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	type_visite = models.CharField("Type de Visite",max_length=20, blank=True, null=True)
-	date_rappel = models.DateField("Date de Rappel", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	methode_rappel = models.CharField("Méthode de rappel",max_length=20, blank=True, null=True)
-	feedback_rappel = models.CharField("Feedback rappel",max_length=50, blank=True, null=True)
-	date_derniere_relance = models.DateField("Date de dernière relance", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	methode_derniere_relance = models.CharField("Méthode de dernière relance",max_length=20, blank=True, null=True)
-	feedback_derniere_relance = models.CharField("feedback de la dernière relance",max_length=50, blank=True, null=True)
-
-	class Meta:
-		verbose_name = "Suivi des RDV ARV"
-		verbose_name_plural = "Suivi des RDV ARV"
-	
-	@property
-	def presence_en_soins(self):
-		return self.code_patient.presence_soins
-	
-	@property
-	def nom_et_prenoms(self):
-		return self.code_patient.nom_prenoms
-	
-	@property
-	def sexe(self):
-		return self.code_patient.sexe
-
-	@property
-	def nom_du_conseiller(self):
-		return self.code_patient.nom_conseiller
-
-	@property
-	def date_prochain_rdv_ARV(self):
-		date1 = self.code_patient.date_dernier_RDV_ARV
-		if self.code_patient.nb_jour_ARV is None:
-			return date1
-		else:
-			date2 = datetime.timedelta(days=self.code_patient.nb_jour_ARV - 5)
-			return date1 + date2
-
-
-class SuiviRdvCV(TimedModel):
-	code_patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, blank=True, null=True, related_name="suivi_rdv_cv")
-	#date_rdv = models.DateField("Date de RDV", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	type_visite = models.CharField("Type de Visite",max_length=20, blank=True, null=True)
-	date_rappel = models.DateField("Date de Rappel", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	methode_rappel = models.CharField("Méthode de rappel",max_length=20, blank=True, null=True)
-	feedback_rappel = models.CharField("Feedback rappel",max_length=50, blank=True, null=True)
-	date_derniere_relance = models.DateField("Date de dernière relance", blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	methode_derniere_relance = models.CharField("Méthode de dernière relance",max_length=20, blank=True, null=True)
-	feedback_derniere_relance = models.CharField("feedback de la dernière relance",max_length=50, blank=True, null=True)
-
-	class Meta:
-		verbose_name = "Suivi des RDV CV"
-		verbose_name_plural = "Suivi des RDV CV"
-	
-	@property
-	def presence_en_soins(self):
-		return self.code_patient.presence_soins
-	
-	@property
-	def nom_et_prenoms(self):
-		return self.code_patient.nom_prenoms
-	
-	@property
-	def sexe(self):
-		return self.code_patient.sexe
-
-	@property
-	def nom_du_conseiller(self):
-		return self.code_patient.nom_conseiller
-
-	@property
-	def date_prochain_rdv_CV(self):
-		date1 = self.code_patient.date_dernier_RDV_CV
-		if self.code_patient.nb_jour_CV is None:
-			return date1
-		else:
-			date2 = datetime.timedelta(days=self.code_patient.nb_jour_CV - 5)
-			return date1 + date2
-
 
 class ContactSujetIndex(TimedModel):
 	code_patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, blank=True, null=True, related_name="contact_sujet_index")
 	code_contact = models.CharField("Code du sujet contact",max_length=30, blank=True, null=True, unique=True)
-	nature_lien = models.CharField("Nature du lien avec le sujet index",max_length=20, blank=True, null=True,)
-	sexe = models.CharField("Sexe du contact",max_length=5, blank=True, null=True,)
+	TYPE = (
+		('1', 'Conjoint'),
+		('2', 'Autre partenaire sexuel'),
+		('3', 'Enfant biologique < 15 ans'),
+		('4', 'Frères /Sœurs   < 15 ans (de index < 15 ans)'),
+		('5', "Père/Mère(de l'index < 15 ans)"),
+	)
+	type_contact = models.CharField("Type de contact",max_length=1, blank=True, null=True, choices=TYPE)
+	SEXE = (
+		('1', 'Masculin'),
+		('2', 'Feminin '),
+		('3', 'Transgenre'),
+	)
+	sexe_contaxt = models.CharField("Sexe du contact",max_length=5, blank=True, null=True,choices=SEXE)
 	date_naissance = models.DateField("Date de naissance",blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	statut_identification = models.CharField("Statut à l'identification",max_length=20, blank=True, null=True,)
+	STATUT = (
+		('1', 'VIH +'),
+		('2', 'VIH -'),
+		('3', 'Inconnu'),
+	)
+	statut_identification = models.CharField("Statut VIH à l'enregistrement",max_length=1, blank=True, null=True, choices=STATUT)
 	date_depistage = models.DateField("Date de dépistage",blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
-	resultat_depistage = models.CharField("Résultat de dépistage",max_length=30, blank=True, null=True,)
+	RESULT_VIH = (
+		('1', 'Positif'),
+		('2', 'Négatif'),
+	)
+	resultat_depistage = models.CharField("Résultat de dépistage",max_length=1, blank=True, null=True, choices=RESULT_VIH)
+	date_mise_ARV = models.DateField("Date de Mise sous ARV",blank=True, null=True, validators = [MaxValueValidator(datetime.datetime.now().date())])
 
 	class Meta:
 		verbose_name = "Contact du sujet Index"
 		verbose_name_plural = "Contacts du sujet Index"
 	
+	@property
+	def age(self):
+		if self.date_naissance is None:
+			return None
+		else:
+			return int(datetime.datetime.now().year) - int(self.date_naissance.year)
+
 	@property
 	def presence_en_soins(self):
 		return self.code_patient.presence_soins
@@ -248,4 +157,50 @@ class ContactSujetIndex(TimedModel):
 	def nom_du_conseiller(self):
 		return self.code_patient.nom_conseiller
 
+	#@property
+	#def date_prochain_rdv_CV(self):
+	#	date1 = self.rdv.date_dernier_RDV_CV
+	#	if self.rdv.nb_jour_CV is None:
+	#		return date1
+	#	else:
+	#		date2 = datetime.timedelta(days=self.rdv.nb_jour_CV - 5)
+	#		return date1 + date2
+	
+	#@property
+	#def rdv_CV_manque(self):
+	#	if str(self.date_prochain_rdv_CV) < str(datetime.datetime.now()):
+	#		return self.date_prochain_rdv_CV
+	#	else:
+	#		return "----"
 
+	#@property
+	#def date_prochain_rdv_ETP(self):
+	#	date1 = self.rdv.date_dernier_RDV_ETP
+	#	if self.rdv.nb_jour_ETP is None:
+	#		return date1
+	#	else:
+	#		date2 = datetime.timedelta(days=self.rdv.nb_jour_ETP - 5)
+	#		return date1 + date2
+	
+	#@property
+	#def rdv_ETP_manque(self):
+	#	if str(self.date_prochain_rdv_ETP) < str(datetime.datetime.now()):
+	#		return self.date_prochain_rdv_ETP
+	#	else:
+	#		return "----"
+
+	#@property
+	#def date_prochain_rdv_ARV(self):
+	#	date1 = self.rdv.date_dernier_RDV_ARV
+	#	if self.rdv.nb_jour_ARV is None:
+	#		return date1
+	#	else:
+	#		date2 = datetime.timedelta(days=self.rdv.nb_jour_ARV - 5)
+	#		return date1 + date2
+
+	#@property
+	#def rdv_ARV_manque(self):
+	#	if str(self.date_prochain_rdv_ARV) < str(datetime.datetime.now()):
+	#		return self.date_prochain_rdv_ARV
+	#	else:
+	#		return "----"

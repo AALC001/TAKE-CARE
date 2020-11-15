@@ -9,43 +9,32 @@ from import_export import resources,fields,widgets
 # Register your models here.
 
 
-class ProchainRendezVousInline(admin.TabularInline):
-	model = ProchainRendezVous
-
-class SuiviRdvARVInline(admin.TabularInline):
-	model = SuiviRdvARV
+class ChargeViraleInline(admin.TabularInline):
+	model = ChargeVirale
 
 class ContactSujetIndexInline(admin.TabularInline):
 	model = ContactSujetIndex
 
-class RendezVousInline(admin.TabularInline):
-	model = RendezVous
+class OrdonnanceInline(admin.TabularInline):
+	model = Ordonnance
 
 class PatientResource(resources.ModelResource):
 	age = fields.Field(attribute='age')
 	class Meta:
 		model = Patient
 		import_id_fields = ('code_patient',)
-		#exclude = ('id', 'creation_time', 'update_time', )
-		fields=('code_patient', 'presence_soins','nom_prenoms', 'sexe', 'date_naissance', 'age','statut_ARV',
-		#'date_dernier_RDV_CV','nb_jour_CV','resultat_derniere_CV','date_dernier_RDV_ARV','nb_jour_ARV','date_dernier_RDV_ETP','nb_jour_ETP',
-		'nom_conseiller',)
-		
-		export_order=('code_patient', 'presence_soins','nom_prenoms', 'sexe', 'date_naissance', 'age','statut_ARV',
-		#'date_dernier_RDV_CV','nb_jour_CV','resultat_derniere_CV','date_dernier_RDV_ARV','nb_jour_ARV','date_dernier_RDV_ETP','nb_jour_ETP',
-		'nom_conseiller',)
+		fields=('code_patient', 'presence_soins','sexe', 'date_naissance', 'date_enrolement', 'Date_de_mise_sous_ARV', 'nom_conseiller',)
+		export_order=('code_patient', 'presence_soins', 'sexe', 'date_naissance', 'date_enrolement', 'Date_de_mise_sous_ARV','nom_conseiller',)
 
 
 class PatientAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 	resource_class = PatientResource
-	list_display = ('code_patient', 'presence_soins','nom_prenoms', 'sexe', 'date_naissance', 'age', 'statut_ARV',
-	#'date_dernier_RDV_CV','nb_jour_CV','resultat_derniere_CV','date_dernier_RDV_ARV','nb_jour_ARV','date_dernier_RDV_ETP','nb_jour_ETP',
-	'nom_conseiller',)
+	list_display = ('code_patient', 'presence_soins', 'sexe', 'date_naissance', 'age', 'date_enrolement', 'Date_de_mise_sous_ARV','nom_conseiller',)
 	search_fields=['code_patient',  'nom_prenoms']
 
 	inlines = [
-
-		RendezVousInline,
+		ChargeViraleInline,
+		OrdonnanceInline,
 		ContactSujetIndexInline,
 	]
 
